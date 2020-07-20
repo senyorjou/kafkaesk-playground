@@ -1,30 +1,72 @@
+from datetime import datetime
+from faker import Faker
+from itertools import cycle
 from kafkaesk import Application
+from models import models
 from pydantic import BaseModel
+from typing import Optional
 
-import asyncio
 import argparse
-from typing import Optional, Union
-from models import SimpleMessage
+import asyncio
+import random
 
 app = Application(kafka_servers=["localhost:9092"])
+fake = Faker()
+
+fake_strings = [fake.text, fake.url, fake.sentence]
+
+
+def generate_message(model_str: Optional[str]) -> BaseModel:
+    if not model_str:
+        model = random.choice(list(models.values()))
+    else:
+        model = models[model_str]
+
+    params = {}
+    fake_string_cycle = cycle(fake_strings)
+    required = model.schema()["required"]
+    for name, props in model.schema()["properties"].items():
+        if name in required or random.choice([True, False]):
+            if props["type"] == "string":
+                params[name] = next(fake_string_cycle)()
+            if props["type"] == "integer":
+                params[name] = random.randint(0, 999)
+            if props["type"] == "date-time":
+                params[name] = datetime.now()
+
+    return model(**params)
+
+
+def register_schemas(only: BaseModel = None):
+    for label, model in models.items():
+        app.schema(label)(model)
 
 
 def list_models() -> None:
-    models = [SimpleMessage]
-    for model in models:
+    for model in models.values():
         schema = model.schema()
         print(schema["title"])
         print("-" * len(schema["title"]))
+        requireds = schema["required"]
+
         for name, props in schema["properties"].items():
             field_type = props["type"]
-            print(f"{name}: {field_type}")
+            default_value = props.get("default")
+
+            star_label = "*" if name in requireds else ""
+            default_label = f"({default_value})" if default_value is not None else ""
+
+            print(f"{name}{star_label}: {field_type} {default_label}")
+
+        print()
 
 
-async def generate_messages(num_messages: int = 0, model: Optional[Union[BaseModel, str]] = None) -> None:
-    app.schema("SimpleMessage")(SimpleMessage)
+async def generate_messages(num_messages: int = 0, model: str = None) -> None:
+    register_schemas()
     async with app:
         for idx in range(num_messages):
-            await app.publish("content", SimpleMessage(message="yo", meta=str(idx)))
+            msg = generate_message(model_str=model)
+            await app.publish("content", msg)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ authors = ["Marc Jou <smyslov@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 kafkaesk = "^0.1.17"
+faker = "^4.1.1"
 
 [tool.poetry.dev-dependencies]
 

@@ -1,16 +1,28 @@
 from kafkaesk import Application
+from models import SimpleMessage
+from models import SimpleTweet
 
 import asyncio
-
-
-from models import SimpleMessage
 
 app = Application(kafka_servers=["localhost:9092"])
 
 
 @app.subscribe("content", group="example_content_group")
 async def messages(data: SimpleMessage):
-    print(f"{data.message}\n{data.meta}")
+    print("SimpleMesage")
+    print("------------")
+    print(f"Message: {data.message}")
+    print(f"Meta: {data.meta}")
+    print("- - -")
+
+
+@app.subscribe("content", group="example_content_group")
+async def tweets(data: SimpleTweet):
+    print("SimpleTweet")
+    print("-----------")
+    print(f"Message: {data.message}")
+    print(f"Likes & Retweets: {data.likes} - {data.retweets}")
+    print("- - -")
 
 
 async def main():
@@ -20,9 +32,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser(description="Kafkaesk pubsub playground")
-    # parser.add_argument("-n", "--url", help="Number of messages")
-    # parser.add_argument("-l", "--max-levels", type=int, help="Max nested levels")
-    # options = parser.parse_args()
     asyncio.run(main())
-    # asyncio.run(generate_data())
