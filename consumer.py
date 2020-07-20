@@ -26,7 +26,6 @@ async def tweets(data: SimpleTweet) -> None:
 
 
 async def main() -> None:
-    app.schema("SimpleMessage")(SimpleMessage)
     async with app:
         await app.consume_forever()
 
