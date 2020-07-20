@@ -37,7 +37,7 @@ def generate_message(model_str: Optional[str]) -> BaseModel:
     return model(**params)
 
 
-def register_schemas(only: BaseModel = None):
+def register_schemas(only: BaseModel = None) -> None:
     for label, model in models.items():
         app.schema(label)(model)
 

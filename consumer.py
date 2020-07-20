@@ -8,7 +8,7 @@ app = Application(kafka_servers=["localhost:9092"])
 
 
 @app.subscribe("content", group="example_content_group")
-async def messages(data: SimpleMessage):
+async def messages(data: SimpleMessage) -> None:
     print("SimpleMesage")
     print("------------")
     print(f"Message: {data.message}")
@@ -17,7 +17,7 @@ async def messages(data: SimpleMessage):
 
 
 @app.subscribe("content", group="example_content_group")
-async def tweets(data: SimpleTweet):
+async def tweets(data: SimpleTweet) -> None:
     print("SimpleTweet")
     print("-----------")
     print(f"Message: {data.message}")
@@ -25,7 +25,7 @@ async def tweets(data: SimpleTweet):
     print("- - -")
 
 
-async def main():
+async def main() -> None:
     app.schema("SimpleMessage")(SimpleMessage)
     async with app:
         await app.consume_forever()
